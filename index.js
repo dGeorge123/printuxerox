@@ -63,7 +63,77 @@ app.get('/api/download/:code', async (req, res) => {
 
     } catch (error) {
         console.error("Download error:", error);
-        res.status(500).json({ message: "Error generating download link." });
+        res.status(500).json({ message: error.message || "Error generating download link." });
+    }
+});
+
+// Configure multer for memory storage
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+});
+
+app.post('/api/upload', upload.single('document'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded." });
+        }
+
+        // Generate a random 6-digit code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const filename = `${code}-${req.file.originalname}`;
+
+        // Check DB connection first
+        const { bucket } = require('./config/firebase');
+        if (!bucket) {
+            throw new Error("Storage not configured (missing credentials).");
+        }
+
+        // Upload to Firebase Storage
+        const blob = bucket.file(filename);
+        const blobStream = blob.createWriteStream({
+            resumable: false,
+            metadata: {
+                contentType: req.file.mimetype,
+            },
+        });
+
+        blobStream.on('error', (err) => {
+            console.error("Blob stream error:", err);
+            res.status(500).json({ message: "Upload to storage failed." });
+        });
+
+        blobStream.on('finish', async () => {
+            try {
+                // Save metadata to Firestore
+                await createFileMetadata(code, {
+                    filename: filename,
+                    originalName: req.file.originalname,
+                    size: req.file.size,
+                    mimeType: req.file.mimetype,
+                    uploadedAt: new Date().toISOString()
+                });
+
+                res.json({
+                    message: "Upload successful!",
+                    code: code,
+                    filename: req.file.originalname
+                });
+            } catch (dbError) {
+                console.error("Metadata save error:", dbError);
+                // If DB fails, we should probably delete the file from storage to keep it clean, 
+                // but for now just report error.
+                res.status(500).json({ message: "File uploaded but database save failed: " + dbError.message });
+            }
+        });
+
+        blobStream.end(req.file.buffer);
+
+    } catch (error) {
+        console.error("Upload handler error:", error);
+        res.status(500).json({ message: error.message || "Server error during upload." });
     }
 });
 

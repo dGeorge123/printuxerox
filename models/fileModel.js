@@ -9,6 +9,7 @@ const COLLECTION_NAME = 'files';
  * @returns {Promise<Object>} The stored data.
  */
 async function createFileMetadata(fileId, data) {
+    if (!db) throw new Error("Database not connected. Please configure Firebase credentials.");
     try {
         const fileRef = db.collection(COLLECTION_NAME).doc(fileId);
         const metadata = {
@@ -32,6 +33,7 @@ async function createFileMetadata(fileId, data) {
  * @returns {Promise<Object | null>} - The file metadata or null.
  */
 async function getFileMetadata(fileId) {
+    if (!db) throw new Error("Database not connected. Please configure Firebase credentials.");
     try {
         const fileRef = db.collection(COLLECTION_NAME).doc(fileId);
         const doc = await fileRef.get();
@@ -53,6 +55,7 @@ async function getFileMetadata(fileId) {
  * @returns {Promise<void>}
  */
 async function updateFileStatus(fileId, status) {
+    if (!db) throw new Error("Database not connected. Please configure Firebase credentials.");
     try {
         const fileRef = db.collection(COLLECTION_NAME).doc(fileId);
         await fileRef.update({ status });
