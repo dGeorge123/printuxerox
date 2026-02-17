@@ -32,10 +32,15 @@ if (!admin.apps.length) {
 
         if (serviceAccount) {
             config.credential = admin.credential.cert(serviceAccount);
+        } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+            try {
+                const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+                config.credential = admin.credential.cert(sa);
+            } catch (e) {
+                console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT env var:", e.message);
+                config.credential = admin.credential.applicationDefault();
+            }
         } else {
-            // Try to let Google Cloud auto-discover credentials (works on some hosting platforms)
-            // or check for parsing env var if needed. 
-            // For now, if no serviceAccount, we might fail unless we are in a GCP environment.
             console.log("No service account loaded. Attempting default application credentials/environment...");
             config.credential = admin.credential.applicationDefault();
         }
