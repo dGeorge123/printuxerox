@@ -63,7 +63,7 @@ app.get('/api/download/:code', async (req, res) => {
 
     } catch (error) {
         console.error("Download error:", error);
-        res.status(500).json({ message: error.message || "Error generating download link." });
+        res.status(500).json({ message: error.message || "Server encountered an error while generating link." });
     }
 });
 
