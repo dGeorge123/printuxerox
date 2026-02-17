@@ -14,33 +14,53 @@ if (serviceAccountPath) {
     }
 } else {
     // Default to looking in root if not specified in env
-    serviceAccountPath = path.join(__dirname, '../../serviceAccountKey.json');
+    serviceAccountPath = path.join(__dirname, '../serviceAccountKey.json');
 }
 
 let serviceAccount;
 try {
     serviceAccount = require(serviceAccountPath);
 } catch (error) {
-    console.error("Error loading service account key from:", serviceAccountPath);
-    console.error("Error details:", error.message);
-    console.error("Please make sure 'serviceAccountKey.json' exists in the root directory or update GOOGLE_APPLICATION_CREDENTIALS in .env");
-    // process.exit(1); // Don't exit yet, might be running without full config for dev
+    console.log("Could not load serviceAccountKey.json. Checking for environment variables...");
 }
 
 if (!admin.apps.length) {
     try {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            storageBucket: process.env.STORAGE_BUCKET_URL // e.g., 'your-project-id.appspot.com'
-        });
+        const config = {
+            storageBucket: process.env.STORAGE_BUCKET_URL
+        };
+
+        if (serviceAccount) {
+            config.credential = admin.credential.cert(serviceAccount);
+        } else {
+            // Try to let Google Cloud auto-discover credentials (works on some hosting platforms)
+            // or check for parsing env var if needed. 
+            // For now, if no serviceAccount, we might fail unless we are in a GCP environment.
+            console.log("No service account loaded. Attempting default application credentials/environment...");
+            config.credential = admin.credential.applicationDefault();
+        }
+
+        admin.initializeApp(config);
         console.log("Firebase initialized successfully");
     } catch (error) {
         console.error("Firebase initialization failed:", error.message);
     }
 }
 
-const db = admin.firestore();
-const storage = admin.storage();
-const bucket = storage.bucket();
+let db, storage, bucket;
+try {
+    if (admin.apps.length) {
+        db = admin.firestore();
+        storage = admin.storage();
+        bucket = storage.bucket();
+    } else {
+        console.warn("Firebase not initialized. DB features will not work.");
+        db = null;
+        storage = null;
+        bucket = null;
+    }
+} catch (e) {
+    console.error("Error creating Firebase clients:", e);
+}
 
 module.exports = { db, bucket, admin };
