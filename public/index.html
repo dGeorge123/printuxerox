@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrintuXerox - Download Document</title>
+    <title>PrintuXerox - Descarcă Document</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,48 +15,23 @@
     <div class="container">
         <div class="card">
             <h1>PrintuXerox</h1>
+            <p class="subtitle">Introdu codul pentru a descărca documentul</p>
 
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('download')">Download</button>
-                <button class="tab-btn" onclick="switchTab('upload')">Upload</button>
+            <div class="input-group">
+                <input type="text" id="code-input" placeholder="ex: 123456" maxlength="20">
+                <label for="code-input">Cod Document</label>
             </div>
 
-            <!-- Download Section -->
-            <div id="download-section" class="tab-content active">
-                <p class="subtitle">Enter your code to download the document</p>
-
-                <div class="input-group">
-                    <input type="text" id="code-input" placeholder="e.g. 123456" maxlength="20">
-                    <label for="code-input">Document Code</label>
-                </div>
-
-                <button id="download-btn" onclick="downloadFile()">
-                    <span class="btn-text">Download Now</span>
-                    <div class="loader"></div>
-                </button>
-            </div>
-
-            <!-- Upload Section -->
-            <div id="upload-section" class="tab-content" style="display: none;">
-                <p class="subtitle">Upload file to get a code</p>
-
-                <div class="file-upload-container" onclick="document.getElementById('file-input').click()">
-                    <div class="icon">📂</div>
-                    <p id="file-name">Click to select file</p>
-                    <input type="file" id="file-input" style="display: none" onchange="handleFileSelect(this)">
-                </div>
-
-                <button id="upload-btn" onclick="uploadFile()" disabled>
-                    <span class="btn-text">Upload Document</span>
-                    <div class="loader"></div>
-                </button>
-            </div>
+            <button id="download-btn" onclick="downloadFile()">
+                <span class="btn-text">Descarcă Acum</span>
+                <div class="loader"></div>
+            </button>
 
             <div id="message" class="message"></div>
         </div>
 
         <div class="footer">
-            &copy; 2026 PrintuXerox. Fast & Secure.
+            &copy; 2026 PrintuXerox. Fast &amp; Secure.
         </div>
     </div>
 
